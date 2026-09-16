@@ -1,0 +1,45 @@
+{
+  "info": {
+    "_postman_id": "1b1e1f49-ef5a-4a2b-9ab1-11244e3a4fb0",
+    "name": "Revenda Carros API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45976010"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json()\r\n\r\npm.test(\"status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Status da API deve ser ok\", () => {\r\n    pm.expect(response.status).to.eql(\"ok\");\r\n});\r\n\r\npm.test(\"Nome do serviço deve estar correto\", () => {\r\n    pm.expect(response.service).to.eql(\"Revenda Carros API\");\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
