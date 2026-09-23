@@ -52,7 +52,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-001 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-001 - Deve retornar um token JWT válido\", () => {\r\n    pm.expect(response).to.have.property(\"token\");\r\n    pm.expect(response.token).to.be.a(\"string\");\r\n    pm.expect(response.token).to.not.be.empty;\r\n    pm.expect(response.token.split(\".\")).to.have.length(3);\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-001 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-001 - Deve retornar um token JWT válido\", () => {\r\n    pm.expect(response).to.have.property(\"token\");\r\n    pm.expect(response.token).to.be.a(\"string\");\r\n    pm.expect(response.token).to.not.be.empty;\r\n    pm.expect(response.token.split(\".\")).to.have.length(3);\r\n});"
                 ]
               }
             }
@@ -91,7 +91,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-002 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\")\r\n});\r\n\r\npm.test(\"CT-AUTH-002 - Deve retornar mensagem de credenciais inválidas\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email ou senha inválidos\");\r\n});\r\n\r\npm.test(\"CT-AUTH-002 - Não deve reornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-002 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-002 - Deve retornar mensagem de credenciais inválidas\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email ou senha inválidos\");\r\n});\r\n\r\npm.test(\"CT-AUTH-002 - Não deve retornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
                 ]
               }
             }
@@ -130,7 +130,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-003 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-003 - Deve retornar mensagem de credenciais inválidas \", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email ou senha inválidos\");\r\n})\r\n\r\npm.test(\"CT-AUTH-003 - Não deve reornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-003 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-003 - Deve retornar mensagem de credenciais inválidas\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email ou senha inválidos\");\r\n})\r\n\r\npm.test(\"CT-AUTH-003 - Não deve retornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
                 ]
               }
             }
@@ -169,7 +169,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-004 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type dever ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n     .to.include(\"application/json\")\r\n});\r\n\r\npm.test(\"CT-AUTH-004 - Deve retornar mensagem de e-mail inválido\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email inválido\");\r\n});\r\n\r\npm.test(\"CT-AUTH-004 - Não deve reornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-004 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n     .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-004 - Deve retornar mensagem de e-mail inválido\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email inválido\");\r\n});\r\n\r\npm.test(\"CT-AUTH-004 - Não deve retornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
                 ]
               }
             }
@@ -208,7 +208,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-005 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-005 - Deve retornar mensagem de e-mail obrigatório\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email obrigatório\");\r\n});\r\n\r\npm.test(\"CT-AUTH-005 - Não deve reornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-005 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-005 - Deve retornar mensagem de e-mail obrigatório\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email obrigatório\");\r\n});\r\n\r\npm.test(\"CT-AUTH-005 - Não deve retornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
                 ]
               }
             }
@@ -247,7 +247,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-006 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type dever ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-006 - Deve retornar mensagem de senha vazia\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Senha não pode ser vazia\");\r\n});\r\n\r\npm.test(\"CT-AUTH-006 - Não deve reornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-006 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-006 - Deve retornar mensagem de senha vazia\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Senha não pode ser vazia\");\r\n});\r\n\r\npm.test(\"CT-AUTH-006 - Não deve retornar token\", () => {\r\n    pm.expect(response).to.not.property('token');\r\n});"
                 ]
               }
             }
