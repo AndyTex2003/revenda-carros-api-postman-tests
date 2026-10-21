@@ -277,6 +277,207 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "CT-AUTH-007 - Acessar perfil sem token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-007 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\")\r\n});\r\n\r\npm.test(\"CT-AUTH-007 - Deve retornar mensagem de token ausente\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Token ausente\")\r\n});\r\n\r\npm.test(\"CT-AUTH-007 - Não deve retornar dados de perfil\", () => {\r\n    pm.expect(response).to.not.have.property(\"email\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-AUTH-008 - Acessar perfil com token inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-008 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-008 - Deve retornar mensagem de token inválido\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Token inválido\");\r\n});\r\n\r\npm.test(\"CT-AUTH-008 - Não deve retornar dados do perfil\", () => {\r\n    pm.expect(response).to.not.have.property(\"email\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "token-invalido",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login VENDEDOR - gerar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.environment.set(\"sellerToken\", response.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"vendedor@revendacarros.com\",\r\n    \"password\": \"Vendedor@123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-AUTH-009 - VENDEDOR acessando rota exclusiva de ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();    \r\n\r\npm.test(\"CT-AUTH-009 - Status code deve ser 403\", () => {\r\n    pm.response.to.have.status(403);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-009 - Deve retornar mensagem de usuário sem permissão\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Usuário sem permissão\");\r\n});\r\n\r\npm.test(\"CT-AUTH-009 - Não deve retornar dados administrativos\", () => {\r\n    pm.expect(response).to.not.have.property(\"admin\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sellerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/admin",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-AUTH-010 - Acessar rota protegida com token expirado",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.environment.get(\"expiredToken\");\r\n\r\npm.variables.set(\r\n    \"expiredTokenClean\",\r\n    token.replace(/\\s+/g, \"\")\r\n);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-AUTH-010 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-AUTH-010 - Deve retornar mensagem de token expirado\", () => {\r\n    pm.expect(response).to.have.property('message');\r\n    pm.expect(response.message).to.eql(\"Token expirado\");\r\n});\r\n\r\npm.test(\"CT-AUTH-010 - Não deve retornar dados de perfil\", () => {\r\n    pm.expect(response).not.to.have.property(\"email\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{expiredTokenClean}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "profile"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
