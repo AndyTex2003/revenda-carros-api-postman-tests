@@ -84,6 +84,45 @@
           "response": []
         },
         {
+          "name": "Login ADMIN - gerar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.environment.set(\"adminToken\", response.token);\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"admin@revendacarros.com\",\r\n    \"password\": \"Admin@123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "CT-AUTH-002 - Login com senha inválida",
           "event": [
             {
@@ -483,7 +522,106 @@
     },
     {
       "name": "Veículos",
-      "item": []
+      "item": [
+        {
+          "name": "CT-VEH-001 - Cadastrar veículo com dados válidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"COntent-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\")\r\n});\r\n\r\npm.test(\"CT-VEH-001 - Deve retornar os dados do veículo cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla\");\r\n    pm.expect(response).to.have.property(\"year\", 2024);\r\n    pm.expect(response).to.have.property(\"plate\", \"ABC1234\");\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");    \r\n});\r\n\r\npm.environment.set(\"vehicleId\", response.id);\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"brand\": \"Toyota\",\r\n    \"model\": \"Corolla\",\r\n    \"year\": 2024,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 0,\r\n    \"price\": 15000,\r\n    \"plate\": \"ABC1234\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-002 - Cadastrar veículo sem campos obrigatórios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-002 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-002 - Deve retornar mensagem de marca obrigatória\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Marca obrigatória\");\r\n});\r\n\r\npm.test(\"CT-VEH-002 - Não deve retornar ID de veículo\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{    \r\n    \"model\": \"Corolla\",\r\n    \"year\": 2024,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 0,\r\n    \"price\": 150000,\r\n    \"plate\": \"DEF5678\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
