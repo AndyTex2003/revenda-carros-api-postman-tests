@@ -551,7 +551,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"brand\": \"Toyota\",\r\n    \"model\": \"Corolla\",\r\n    \"year\": 2024,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 0,\r\n    \"price\": 15000,\r\n    \"plate\": \"ABC1234\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "raw": "{\r\n    \"brand\": \"Toyota\",\r\n    \"model\": \"Corolla\",\r\n    \"year\": 2024,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 0,\r\n    \"price\": 150000,\r\n    \"plate\": \"ABC1234\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -616,6 +616,176 @@
               "port": "3000",
               "path": [
                 "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-003 - Cadastrar Veículo com placa duplicada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-003 - Status code deve ser 409\", () => {\r\n    pm.response.to.have.status(409);    \r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-003 - Deve retornar mensagem de placa já cadastrada\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Placa já cadastrada\");\r\n});\r\n\r\npm.test(\"CT-VEH-003 - Não deve retornar ID de veículo\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"brand\": \"Honda\",\r\n    \"model\": \"Civic\",\r\n    \"year\": 2023,\r\n    \"color\": \"Preto\",\r\n    \"mileage\": 10000,\r\n    \"price\": 140000,\r\n    \"plate\": \"ABC1234\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-004 - Listar veículos como ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-004 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-004 - Deve retornar uma lista de veículos\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-VEH-004 - A lista deve conter veículos cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-VEH-004 - Deve conter o veículo ABC1234\", () => {\r\n    const vehicle = response.find(v => v.plate === \"ABC1234\");\r\n\r\n    pm.expect(vehicle).to.exist;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-005 - Listar veículos como VENDEDOR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-005 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-005 - Deve retornar uma lista de veículos\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-VEH-005 - A lista deve conter veículos cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-VEH-005 - Deve conter o veículo ABC1234\", () => {\r\n    const vehicle = response.find(v => v.plate === \"ABC1234\");\r\n\r\n    pm.expect(vehicle).to.exist;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sellerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-006 - Buscar veículo existente por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-006 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-006 - Deve retornar o veículo solicitado\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response).to.have.property(\"plate\", \"ABC1234\");\r\n});\r\n\r\npm.test(\"CT-VEH-006 - ID retornado deve ser o mesmo solicitado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"vehicleId\"));\r\n});\r\n\r\npm.test(\"CT-VEH-006 - Deve retornar os dados do Corolla cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla\");\r\n    pm.expect(response).to.have.property(\"year\", 2024);\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles/{{vehicleId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles",
+                "{{vehicleId}}"
               ]
             }
           },
