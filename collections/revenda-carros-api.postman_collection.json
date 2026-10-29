@@ -790,6 +790,217 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "CT-VEH-007 - Buscar veículo inexistente por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-007 - Status code deve ser 404\", () => {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include('application/json');\r\n});\r\n\r\npm.test(\"CT-VEH-007 - Deve retornar mensagem de veículo não encontrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Veículo não encontrado\");\r\n});\r\n\r\npm.test(\"CT-VEH-007 - Não deve retornar dados do veículo\", () => {\r\n    pm.expect(response).to.not.have.property('id');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles/00000000-0000-0000-0000-000000000000",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-008 - Atualizar veículo existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o mesmo veículo atualizado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"vehicleId\"));\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o modelo atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla XEi\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o status atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"status\", \"VENDIDO\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"brand\": \"Toyota\",\r\n  \"model\": \"Corolla XEi\",\r\n  \"year\": 2024,\r\n  \"color\": \"Prata\",\r\n  \"mileage\": 0,\r\n  \"price\": 150000,\r\n  \"plate\": \"ABC1234\",\r\n  \"status\": \"VENDIDO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles/{{vehicleId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-010 - Acessar veículos sem token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-010 - Status code deve ser 401\", () => {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include('application/json');\r\n});\r\n\r\npm.test(\"CT-VEH-010 - Deve conter mensagem de token ausente\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Token ausente\");\r\n});\r\n\r\npm.test(\"CT-VEH-010 Não deve retornar lista de veículos\", () => {\r\n    pm.expect(response).to.not.be.an(\"array\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-011 - VENDEDOR tentando cadastrar veículo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-011 - Status code deve ser 403\", () => {\r\n    pm.response.to.have.status(403);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include('application/json');\r\n});\r\n\r\npm.test(\"CT-VEH-011 - Deve retornar mensagem de usuário sem permissão\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Usuário sem permissão\");\r\n});\r\n\r\npm.test(\"CT-VEH-011 - Não deve retornar ID de veículo\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sellerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"brand\": \"Chevrolet\",\r\n  \"model\": \"Onix\",\r\n  \"year\": 2023,\r\n  \"color\": \"Branco\",\r\n  \"mileage\": 5000,\r\n  \"price\": 90000,\r\n  \"plate\": \"XYZ9876\",\r\n  \"status\": \"DISPONIVEL\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-VEH-009 - Excluir veículo existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"CT-VEH-009 - Status code deve ser 204\", () => {\r\n    pm.response.to.have.status(204);\r\n});\r\n\r\npm.test(\"CT-VEH-009 - Resposta não deve conter body\", () => {\r\n    pm.expect(pm.response.text()).to.eql(\"\");\r\n})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles/{{vehicleId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
