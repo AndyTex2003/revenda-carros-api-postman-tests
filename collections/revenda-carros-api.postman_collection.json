@@ -1006,7 +1006,253 @@
     },
     {
       "name": "Clientes",
-      "item": []
+      "item": [
+        {
+          "name": "CT-CUS-001 - Cadastrar cliente com dados válidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-001 - Deve retornar os dados do cliente cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva\");\r\n    pm.expect(response).to.have.property(\"cpf\",\"12345678901\");\r\n    pm.expect(response).to.have.property(\"email\",\"joao.silva@example.com\");\r\n    pm.expect(response).to.have.property(\"phone\",\"+55 11 98765-4321\");\r\n});\r\n\r\npm.test(\"CT-CUS-001 - Deve retornar ID do cliente\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response.id).to.be.a(\"string\").and.not.empty;\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"customerId\", response.id);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"João Silva\",\r\n  \"cpf\": \"12345678901\",\r\n  \"email\": \"joao.silva@example.com\",\r\n  \"phone\": \"+55 11 98765-4321\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-CUS-002 - Cadastrar cliente com campos obrigatórios vazios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-002 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-002 - Deve retornar mensagem de nome obrigatório\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Nome obrigatório\");\r\n});\r\n\r\npm.test(\"CT-CUS-002 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"\",\r\n  \"cpf\": \"\",\r\n  \"email\": \"\",\r\n  \"phone\": \"\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-CUS-003 - Cadastrar cliente com CPF duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-003 - Status code deve ser 409\", () => {\r\n    pm.response.to.have.status(409);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-003 - Deve retornar mensagem de CPF já cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"CPF já cadastrado\");\r\n});\r\n\r\npm.test(\"CT-CUS-003 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Maria Souza\",\r\n  \"cpf\": \"12345678901\",\r\n  \"email\": \"maria.souza@example.com\",\r\n  \"phone\": \"+55 11 97777-1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-CUS-004 - Cadastrar cliente com CPF inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-004 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-004 - Deve retornar mensagem de CPF inválido\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"CPF inválido\");\r\n})\r\n\r\npm.test(\"CT-CUS-004 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Carlos Lima\",\r\n  \"cpf\": \"123\",\r\n  \"email\": \"carlos.lima@example.com\",\r\n  \"phone\": \"+55 11 96666-4321\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-CUS-005 - Cadastrar cliente com e-mail duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-005 - Status code deve ser 409\", () => {\r\n    pm.response.to.have.status(409);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-005 - Deve retornar mensagem de e-mail já cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email já cadastrado\");\r\n});\r\n\r\npm.test(\"CT-CUS-005 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Fernanda Alves\",\r\n  \"cpf\": \"98765432100\",\r\n  \"email\": \"joao.silva@example.com\",\r\n  \"phone\": \"+55 11 95555-6789\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
