@@ -97,6 +97,16 @@
             }
           ],
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -1698,7 +1708,311 @@
     },
     {
       "name": "Vendas",
-      "item": []
+      "item": [
+        {
+          "name": "Setup - Criar veículo disponível para venda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"Setup - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Setup - Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"Setup - Deve retornar os dados do veículo cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Yaris\");\r\n    pm.expect(response).to.have.property(\"year\", 2025);\r\n    pm.expect(response.plate)\r\n        .to.eql(pm.environment.get(\"saleVehiclePlate\"));\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"saleVehicleId\", response.id);\r\n};"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letras = Array.from(\r\n    { length: 3 },\r\n    () => String.fromCharCode(65 + Math.floor(Math.random() * 26))\r\n).join(\"\");\r\n\r\nconst numeros = Math.floor(1000 + Math.random() * 9000);\r\n\r\nconst placa = `${letras}${numeros}`;\r\n\r\npm.environment.set(\"saleVehiclePlate\", placa);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"brand\": \"Toyota\",\r\n    \"model\": \"Yaris\",\r\n    \"year\": 2025,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 500,\r\n    \"price\": 120000,\r\n    \"plate\": \"{{saleVehiclePlate}}\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-SALE-001 - Cadastrar venda com dados válidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-001 - Deve retornar os dados de venda cadastrada\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n\r\n    pm.expect(response.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n\r\n    pm.expect(response.vehicleId)\r\n        .to.eql(pm.environment.get(\"saleVehicleId\"));\r\n\r\n    pm.expect(response.salePrice)\r\n        .to.eql(120000);\r\n});\r\n\r\npm.test(\"CT-SALE-001 - Deve retornar a data da venda\", () => {\r\n    pm.expect(response).to.have.property(\"saleDate\");\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"saleId\", response.id);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"{{saleVehicleId}}\",\r\n  \"salePrice\": 120000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-SALE-002 - Cadastrar venda com campos obrigatórios inválidos ou vazios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-002 - Status code deve ser 400\", () => {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"CT-SALE-002 - Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-002 - Deve retornar mensagem de cliente obrigatório\", () => {\r\n    pm.expect(response.message)\r\n        .to.eql(\"Cliente obrigatório\");\r\n});\r\n\r\npm.test(\"CT-SALE-002 - Não deve retornar uma venda\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customerId\": \"\",\r\n  \"vehicleId\": \"\",\r\n  \"salePrice\": 0\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-SALE-003 - Cadastrar venda para cliente inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-003 - Status code deve ser 404\", () => {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-003 - Deve retornar mensagem de cliente não encontrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Cliente não encontrado\");\r\n});\r\n\r\npm.test(\"CT-SALE-003 - Não deve retornar uma venda\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customerId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"vehicleId\": \"{{saleVehicleId}}\",\r\n  \"salePrice\": 120000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-SALE-004 - Cadastrar venda para veículo inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-004 - Status code deve ser 404\", () => {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-004 - Deve retornar mensagem de Veículo não encontrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Veículo não encontrado\");\r\n});\r\n\r\npm.test(\"CT-SALE-004 - Não deve criar uma venda\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"00000000-0000-0000-0000-000000000000\",\r\n  \"salePrice\": 120000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CT-SALE-005 - Cadastrar venda para veículo já vendido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-005 - Status code deve ser 409\", () => {\r\n    pm.response.to.have.status(409);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-005 - Deve retornar mensagem de veículo não disponível para venda\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Veículo não disponível para venda\")\r\n});\r\n\r\npm.test(\"CT-SALE-005 - Não deve criar uma venda\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"cbeba906-9f38-47f7-98bd-cb3da4f54d83\",\r\n  \"salePrice\": 120000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
