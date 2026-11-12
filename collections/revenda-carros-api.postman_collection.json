@@ -91,7 +91,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.environment.set(\"adminToken\", response.token);\r\n"
+                  "const response = pm.response.json();\r\n\r\nif (pm.response.code === 200 && response.token) {\r\n    pm.environment.set(\"adminToken\", response.token);\r\n}\r\n\r\n"
                 ]
               }
             }
@@ -111,7 +111,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\": \"admin@revendacarros.com\",\r\n    \"password\": \"Admin@123\"\r\n}",
+              "raw": "{\r\n    \"email\": \"{{adminEmail}}\",\r\n    \"password\": \"{{adminPassword}}\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -405,7 +405,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.environment.set(\"sellerToken\", response.token);"
+                  "const response = pm.response.json();\r\n\r\nif (pm.response.code === 200 && response.token) {\r\n    pm.environment.set(\"sellerToken\", response.token);\r\n}"
                 ]
               }
             }
@@ -425,7 +425,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\": \"vendedor@revendacarros.com\",\r\n    \"password\": \"Vendedor@123\"\r\n}",
+              "raw": "{\r\n    \"email\": \"{{sellerEmail}}\",\r\n    \"password\": \"{{sellerPassword}}\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -548,7 +548,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"COntent-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\")\r\n});\r\n\r\npm.test(\"CT-VEH-001 - Deve retornar os dados do veículo cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla\");\r\n    pm.expect(response).to.have.property(\"year\", 2024);\r\n    pm.expect(response).to.have.property(\"plate\", \"ABC1234\");\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");    \r\n});\r\n\r\npm.environment.set(\"vehicleId\", response.id);\r\n"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"COntent-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\")\r\n});\r\n\r\npm.test(\"CT-VEH-001 - Deve retornar os dados do veículo cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla\");\r\n    pm.expect(response).to.have.property(\"year\", 2024);\r\n    pm.expect(response.plate)\r\n    .to.eql(pm.environment.get(\"vehiclePlate\"));\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");    \r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"vehicleId\", response.id);\r\n}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letras = Array.from(\r\n    { length: 3 },\r\n    () => String.fromCharCode(65 + Math.floor(Math.random() * 26))\r\n).join(\"\");\r\n\r\nconst numeros = Math.floor(1000 + Math.random() * 9000);\r\n\r\nconst placa = `${letras}${numeros}`;\r\n\r\npm.environment.set(\"vehiclePlate\", placa);"
                 ]
               }
             }
@@ -568,7 +577,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"brand\": \"Toyota\",\r\n    \"model\": \"Corolla\",\r\n    \"year\": 2024,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 0,\r\n    \"price\": 150000,\r\n    \"plate\": \"ABC1234\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "raw": "{\r\n    \"brand\": \"Toyota\",\r\n    \"model\": \"Corolla\",\r\n    \"year\": 2024,\r\n    \"color\": \"Prata\",\r\n    \"mileage\": 0,\r\n    \"price\": 150000,\r\n    \"plate\": \"{{vehiclePlate}}\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -666,7 +675,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"brand\": \"Honda\",\r\n    \"model\": \"Civic\",\r\n    \"year\": 2023,\r\n    \"color\": \"Preto\",\r\n    \"mileage\": 10000,\r\n    \"price\": 140000,\r\n    \"plate\": \"ABC1234\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
+              "raw": "{\r\n    \"brand\": \"Honda\",\r\n    \"model\": \"Civic\",\r\n    \"year\": 2023,\r\n    \"color\": \"Preto\",\r\n    \"mileage\": 10000,\r\n    \"price\": 140000,\r\n    \"plate\": \"{{vehiclePlate}}\",\r\n    \"status\": \"DISPONIVEL\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -695,7 +704,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-004 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-004 - Deve retornar uma lista de veículos\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-VEH-004 - A lista deve conter veículos cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-VEH-004 - Deve conter o veículo ABC1234\", () => {\r\n    const vehicle = response.find(v => v.plate === \"ABC1234\");\r\n\r\n    pm.expect(vehicle).to.exist;\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-004 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-004 - Deve retornar uma lista de veículos\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-VEH-004 - A lista deve conter veículos cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-VEH-004 - Deve conter o veículo cadastrado\", () => {\r\n    const vehicle = response.find(\r\n        v => v.plate === pm.environment.get(\"vehiclePlate\")\r\n    );\r\n\r\n    pm.expect(vehicle).to.exist;\r\n});"
                 ]
               }
             }
@@ -735,7 +744,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-005 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-005 - Deve retornar uma lista de veículos\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-VEH-005 - A lista deve conter veículos cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-VEH-005 - Deve conter o veículo ABC1234\", () => {\r\n    const vehicle = response.find(v => v.plate === \"ABC1234\");\r\n\r\n    pm.expect(vehicle).to.exist;\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-005 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-005 - Deve retornar uma lista de veículos\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-VEH-005 - A lista deve conter veículos cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-VEH-005 - VENDEDOR deve visualizar o veículo cadastrado\", () => {\r\n    const vehicle = response.find(\r\n        v => v.plate === pm.environment.get(\"vehiclePlate\")\r\n    );\r\n\r\n    pm.expect(vehicle).to.exist;\r\n});"
                 ]
               }
             }
@@ -775,7 +784,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-006 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-006 - Deve retornar o veículo solicitado\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response).to.have.property(\"plate\", \"ABC1234\");\r\n});\r\n\r\npm.test(\"CT-VEH-006 - ID retornado deve ser o mesmo solicitado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"vehicleId\"));\r\n});\r\n\r\npm.test(\"CT-VEH-006 - Deve retornar os dados do Corolla cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla\");\r\n    pm.expect(response).to.have.property(\"year\", 2024);\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-006 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-006 - Deve retornar o veículo solicitado\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n\r\n    pm.expect(response.plate)\r\n        .to.eql(pm.environment.get(\"vehiclePlate\"));\r\n});\r\n\r\npm.test(\"CT-VEH-006 - ID retornado deve ser o mesmo solicitado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"vehicleId\"));\r\n});\r\n\r\npm.test(\"CT-VEH-006 - Deve retornar os dados do Corolla cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"brand\", \"Toyota\");\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla\");\r\n    pm.expect(response).to.have.property(\"year\", 2024);\r\n    pm.expect(response).to.have.property(\"status\", \"DISPONIVEL\");\r\n});"
                 ]
               }
             }
@@ -857,7 +866,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o mesmo veículo atualizado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"vehicleId\"));\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o modelo atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla XEi\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o status atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"status\", \"VENDIDO\");\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o mesmo veículo atualizado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"vehicleId\"));\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o modelo atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"model\", \"Corolla XEi\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve retornar o status atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"status\", \"VENDIDO\");\r\n});\r\n\r\npm.test(\"CT-VEH-008 - Deve manter a placa do veículo\", () => {\r\n    pm.expect(response.plate)\r\n        .to.eql(pm.environment.get(\"vehiclePlate\"));\r\n});"
                 ]
               }
             }
@@ -877,7 +886,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"brand\": \"Toyota\",\r\n  \"model\": \"Corolla XEi\",\r\n  \"year\": 2024,\r\n  \"color\": \"Prata\",\r\n  \"mileage\": 0,\r\n  \"price\": 150000,\r\n  \"plate\": \"ABC1234\",\r\n  \"status\": \"VENDIDO\"\r\n}",
+              "raw": "{\r\n  \"brand\": \"Toyota\",\r\n  \"model\": \"Corolla XEi\",\r\n  \"year\": 2024,\r\n  \"color\": \"Prata\",\r\n  \"mileage\": 0,\r\n  \"price\": 150000,\r\n  \"plate\": \"{{vehiclePlate}}\",\r\n  \"status\": \"VENDIDO\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -940,6 +949,15 @@
                   "const response = pm.response.json();\r\n\r\npm.test(\"CT-VEH-011 - Status code deve ser 403\", () => {\r\n    pm.response.to.have.status(403);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include('application/json');\r\n});\r\n\r\npm.test(\"CT-VEH-011 - Deve retornar mensagem de usuário sem permissão\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Usuário sem permissão\");\r\n});\r\n\r\npm.test(\"CT-VEH-011 - Não deve retornar ID de veículo\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
                 ]
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letras = Array.from(\r\n    { length: 3 },\r\n    () => String.fromCharCode(65 + Math.floor(Math.random() * 26))\r\n).join(\"\");\r\n\r\nconst numeros = Math.floor(1000 + Math.random() * 9000);\r\n\r\npm.environment.set(\"sellerVehiclePlate\", `${letras}${numeros}`);"
+                ]
+              }
             }
           ],
           "request": {
@@ -957,7 +975,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"brand\": \"Chevrolet\",\r\n  \"model\": \"Onix\",\r\n  \"year\": 2023,\r\n  \"color\": \"Branco\",\r\n  \"mileage\": 5000,\r\n  \"price\": 90000,\r\n  \"plate\": \"XYZ9876\",\r\n  \"status\": \"DISPONIVEL\"\r\n}",
+              "raw": "{\r\n  \"brand\": \"Chevrolet\",\r\n  \"model\": \"Onix\",\r\n  \"year\": 2023,\r\n  \"color\": \"Branco\",\r\n  \"mileage\": 5000,\r\n  \"price\": 90000,\r\n  \"plate\": \"{{sellerVehiclePlate}}\",\r\n  \"status\": \"DISPONIVEL\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
