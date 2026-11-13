@@ -1050,7 +1050,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-001 - Deve retornar os dados do cliente cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva\");\r\n    pm.expect(response).to.have.property(\"cpf\",\"12345678901\");\r\n    pm.expect(response).to.have.property(\"email\",\"joao.silva@example.com\");\r\n    pm.expect(response).to.have.property(\"phone\",\"+55 11 98765-4321\");\r\n});\r\n\r\npm.test(\"CT-CUS-001 - Deve retornar ID do cliente\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response.id).to.be.a(\"string\").and.not.empty;\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"customerId\", response.id);\r\n}"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-001 - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-001 - Deve retornar os dados do cliente cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva\");\r\n    \r\n    pm.expect(response.cpf)\r\n        .to.eql(pm.environment.get(\"customerCpf\"));\r\n\r\n    pm.expect(response.email)\r\n        .to.eql(pm.environment.get(\"customerEmail\"));\r\n    \r\n    pm.expect(response).to.have.property(\"phone\",\"+55 11 98765-4321\");\r\n});\r\n\r\npm.test(\"CT-CUS-001 - Deve retornar ID do cliente\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response.id).to.be.a(\"string\").and.not.empty;\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"customerId\", response.id);\r\n}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function gerarCpfValido() {\r\n    let base;\r\n\r\n    do {\r\n        base = Array.from(\r\n            { length: 9 },\r\n            () => Math.floor(Math.random() * 10)\r\n        );\r\n    } while (base.every(numero => numero === base[0]));\r\n\r\n    const calcularDigito = (numeros, pesoInicial) => {\r\n        const soma = numeros.reduce(\r\n            (total, numero, indice) =>\r\n                total + numero * (pesoInicial - indice),\r\n            0\r\n        );\r\n\r\n        const resto = (soma * 10) % 11;\r\n\r\n        return resto === 10 ? 0 : resto;\r\n    };\r\n\r\n    const primeiroDigito = calcularDigito(base, 10);\r\n    const segundoDigito = calcularDigito(\r\n        [...base, primeiroDigito],\r\n        11\r\n    );\r\n\r\n    return [...base, primeiroDigito, segundoDigito].join(\"\");\r\n}\r\n\r\nconst cpf = gerarCpfValido();\r\nconst uniqueId = Date.now();\r\n\r\npm.environment.set(\"customerCpf\", cpf);\r\npm.environment.set(\r\n    \"customerEmail\",\r\n    `joao.silva.${uniqueId}@example.com`\r\n);"
                 ]
               }
             }
@@ -1070,7 +1079,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"João Silva\",\r\n  \"cpf\": \"12345678901\",\r\n  \"email\": \"joao.silva@example.com\",\r\n  \"phone\": \"+55 11 98765-4321\"\r\n}",
+              "raw": "{\r\n  \"name\": \"João Silva\",\r\n  \"cpf\": \"{{customerCpf}}\",\r\n  \"email\": \"{{customerEmail}}\",\r\n  \"phone\": \"+55 11 98765-4321\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1151,6 +1160,15 @@
                   "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-003 - Status code deve ser 409\", () => {\r\n    pm.response.to.have.status(409);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-003 - Deve retornar mensagem de CPF já cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"CPF já cadastrado\");\r\n});\r\n\r\npm.test(\"CT-CUS-003 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
                 ]
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const uniqueId = Date.now();\r\n\r\npm.environment.set(\r\n    \"duplicateCpfEmail\",\r\n    `maria.souza.${uniqueId}@example.com`\r\n);"
+                ]
+              }
             }
           ],
           "request": {
@@ -1168,7 +1186,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Maria Souza\",\r\n  \"cpf\": \"12345678901\",\r\n  \"email\": \"maria.souza@example.com\",\r\n  \"phone\": \"+55 11 97777-1234\"\r\n}",
+              "raw": "{\r\n  \"name\": \"Maria Souza\",\r\n  \"cpf\": \"{{customerCpf}}\",\r\n  \"email\": \"{{duplicateCpfEmail}}\",\r\n  \"phone\": \"+55 11 97777-1234\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1249,6 +1267,15 @@
                   "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-005 - Status code deve ser 409\", () => {\r\n    pm.response.to.have.status(409);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-005 - Deve retornar mensagem de e-mail já cadastrado\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Email já cadastrado\");\r\n});\r\n\r\npm.test(\"CT-CUS-005 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
                 ]
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function gerarCpfValido() {\r\n    let base;\r\n\r\n    do {\r\n        base = Array.from(\r\n            { length: 9 },\r\n            () => Math.floor(Math.random() * 10)\r\n        );\r\n    } while (base.every(numero => numero === base[0]));\r\n\r\n    const calcularDigito = (numeros, pesoInicial) => {\r\n        const soma = numeros.reduce(\r\n            (total, numero, indice) =>\r\n                total + numero * (pesoInicial - indice),\r\n            0\r\n        );\r\n\r\n        const resto = (soma * 10) % 11;\r\n\r\n        return resto === 10 ? 0 : resto;\r\n    };\r\n\r\n    const primeiroDigito = calcularDigito(base, 10);\r\n    const segundoDigito = calcularDigito(\r\n        [...base, primeiroDigito],\r\n        11\r\n    );\r\n\r\n    return [...base, primeiroDigito, segundoDigito].join(\"\");\r\n}\r\n\r\npm.environment.set(\"duplicateEmailCpf\", gerarCpfValido());"
+                ]
+              }
             }
           ],
           "request": {
@@ -1266,7 +1293,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Fernanda Alves\",\r\n  \"cpf\": \"98765432100\",\r\n  \"email\": \"joao.silva@example.com\",\r\n  \"phone\": \"+55 11 95555-6789\"\r\n}",
+              "raw": "{\r\n  \"name\": \"Fernanda Alves\",\r\n  \"cpf\": \"{{duplicateEmailCpf}}\",\r\n  \"email\": \"{{customerEmail}}\",\r\n  \"phone\": \"+55 11 95555-6789\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1344,7 +1371,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-007 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-007 - Deve retornar uma lista de clientes\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-CUS-007 A lista deve conter clientes cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-CUS-007 - Deve conter o cliente João Silva\", () => {\r\n    const customer = response.find(\r\n        c => c.email === \"joao.silva@example.com\"\r\n    );\r\n\r\n    pm.expect(customer).to.exist;\r\n    pm.expect(customer.id).to.eql(pm.environment.get(\"customerId\"));\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-007 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-007 - Deve retornar uma lista de clientes\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-CUS-007 A lista deve conter clientes cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-CUS-007 - Deve conter o cliente João Silva\", () => {\r\n    const customer = response.find(\r\n        c => c.email === pm.environment.get(\"customerEmail\")\r\n    );\r\n\r\n    pm.expect(customer).to.exist;\r\n    pm.expect(customer.id)\r\n        .to.eql(pm.environment.get(\"customerId\"));\r\n});"
                 ]
               }
             }
@@ -1393,7 +1420,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-008 - Deve retornar uma lista de clientes\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-CUS-008 - A lista deve conter clientes cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-CUS-008 - VENDEDOR deve conseguir consultar o cliente João Silva\", () => {\r\n    const customer = response.find(\r\n        c => c.email === \"joao.silva@example.com\"\r\n    );\r\n\r\n    pm.expect(customer).to.exist;\r\n    pm.expect(customer.id).to.eql(pm.environment.get(\"customerId\"));\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-008 - Deve retornar uma lista de clientes\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-CUS-008 - A lista deve conter clientes cadastrados\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-CUS-008 - VENDEDOR deve conseguir consultar o cliente João Silva\", () => {\r\n    const customer = response.find(\r\n        c => c.email === pm.environment.get(\"customerEmail\")\r\n    );\r\n\r\n    pm.expect(customer).to.exist;\r\n    pm.expect(customer.id)\r\n        .to.eql(pm.environment.get(\"customerId\"));\r\n});"
                 ]
               }
             }
@@ -1442,7 +1469,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-009 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-009 - Deve retornar o cliente solicitado\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva\");\r\n    pm.expect(response).to.have.property(\"cpf\", \"12345678901\");\r\n    pm.expect(response).to.have.property(\"email\", \"joao.silva@example.com\");\r\n});\r\n\r\npm.test(\"CT-CUS-009 - ID retornado deve ser o mesmo solicitado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"customerId\"));\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-009 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-009 - Deve retornar o cliente solicitado\", () => {\r\n    pm.expect(response).to.have.property(\"id\");\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva\");\r\n    \r\n    pm.expect(response.cpf)\r\n        .to.eql(pm.environment.get(\"customerCpf\"));\r\n    \r\n    pm.expect(response.email)\r\n        .to.eql(pm.environment.get(\"customerEmail\"));\r\n});\r\n\r\npm.test(\"CT-CUS-009 - ID retornado deve ser o mesmo solicitado\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"customerId\"));\r\n});"
                 ]
               }
             }
@@ -1542,7 +1569,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-011 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve retonrnar o mesmo cliente atualizado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"customerId\"));\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve retornar o nome atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva Atualizado\");\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve retornar e-mail e telefone atualizados\", () => {\r\n    pm.expect(response).to.have.property(\r\n        \"email\",\r\n        \"joao.silva.atualizado@example.com\"\r\n    );\r\n\r\n    pm.expect(response).to.have.property(\r\n        \"phone\",\r\n        \"+55 11 98888-7777\"\r\n    );\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-011 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve retornar o mesmo cliente atualizado\", () => {\r\n    pm.expect(response.id).to.eql(pm.environment.get(\"customerId\"));\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve retornar o nome atualizado\", () => {\r\n    pm.expect(response).to.have.property(\"name\", \"João Silva Atualizado\");\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve manter o CPF do cliente\", () => {\r\n    pm.expect(response.cpf)\r\n        .to.eql(pm.environment.get(\"customerCpf\"));\r\n});\r\n\r\npm.test(\"CT-CUS-011 - Deve retornar e-mail e telefone atualizados\", () => {\r\n    pm.expect(response.email)\r\n        .to.eql(pm.environment.get(\"customerUpdatedEmail\"));\r\n\r\n    pm.expect(response).to.have.property(\r\n        \"phone\",\r\n        \"+55 11 98888-7777\"\r\n    );\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const uniqueId = Date.now();\r\n\r\npm.environment.set(\r\n    \"customerUpdatedEmail\",\r\n    `joao.silva.atualizado.${uniqueId}@example.com`\r\n);"
                 ]
               }
             }
@@ -1562,7 +1598,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"João Silva Atualizado\",\r\n  \"cpf\": \"12345678901\",\r\n  \"email\": \"joao.silva.atualizado@example.com\",\r\n  \"phone\": \"+55 11 98888-7777\"\r\n}",
+              "raw": "{\r\n  \"name\": \"João Silva Atualizado\",\r\n  \"cpf\": \"{{customerCpf}}\",\r\n  \"email\": \"{{customerUpdatedEmail}}\",\r\n  \"phone\": \"+55 11 98888-7777\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1634,6 +1670,15 @@
                   "const response = pm.response.json();\r\n\r\npm.test(\"CT-CUS-014 - Status code deve ser 403\", () => {\r\n    pm.response.to.have.status(403);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-CUS-014 - Deve retornar mensagem de usuário sem permissão\", () => {\r\n    pm.expect(response).to.have.property(\"message\");\r\n    pm.expect(response.message).to.eql(\"Usuário sem permissão\");\r\n});\r\n\r\npm.test(\"CT-CUS-014 - Não deve retornar ID de cliente\", () => {\r\n    pm.expect(response).to.not.have.property(\"id\");\r\n});"
                 ]
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function gerarCpfValido() {\r\n    let base;\r\n\r\n    do {\r\n        base = Array.from(\r\n            { length: 9 },\r\n            () => Math.floor(Math.random() * 10)\r\n        );\r\n    } while (base.every(numero => numero === base[0]));\r\n\r\n    const calcularDigito = (numeros, pesoInicial) => {\r\n        const soma = numeros.reduce(\r\n            (total, numero, indice) =>\r\n                total + numero * (pesoInicial - indice),\r\n            0\r\n        );\r\n\r\n        const resto = (soma * 10) % 11;\r\n\r\n        return resto === 10 ? 0 : resto;\r\n    };\r\n\r\n    const primeiroDigito = calcularDigito(base, 10);\r\n    const segundoDigito = calcularDigito(\r\n        [...base, primeiroDigito],\r\n        11\r\n    );\r\n\r\n    return [...base, primeiroDigito, segundoDigito].join(\"\");\r\n}\r\n\r\nconst uniqueId = Date.now();\r\n\r\npm.environment.set(\"sellerCustomerCpf\", gerarCpfValido());\r\npm.environment.set(\r\n    \"sellerCustomerEmail\",\r\n    `mariana.costa.${uniqueId}@example.com`\r\n);"
+                ]
+              }
             }
           ],
           "request": {
@@ -1651,7 +1696,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Mariana Costa\",\r\n  \"cpf\": \"74185296300\",\r\n  \"email\": \"mariana.costa@example.com\",\r\n  \"phone\": \"+55 11 93333-2468\"\r\n}",
+              "raw": "{\r\n  \"name\": \"Mariana Costa\",\r\n  \"cpf\": \"{{sellerCustomerCpf}}\",\r\n  \"email\": \"{{sellerCustomerEmail}}\",\r\n  \"phone\": \"+55 11 93333-2468\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
