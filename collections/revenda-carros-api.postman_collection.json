@@ -1773,6 +1773,64 @@
       "name": "Vendas",
       "item": [
         {
+          "name": "Setup - Criar cliente para venda",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function gerarCpfValido() {\r\n    let base;\r\n\r\n    do {\r\n        base = Array.from(\r\n            { length: 9 },\r\n            () => Math.floor(Math.random() * 10)\r\n        );\r\n    } while (base.every(numero => numero === base[0]));\r\n\r\n    const calcularDigito = (numeros, pesoInicial) => {\r\n        const soma = numeros.reduce(\r\n            (total, numero, indice) =>\r\n                total + numero * (pesoInicial - indice),\r\n            0\r\n        );\r\n\r\n        const resto = (soma * 10) % 11;\r\n\r\n        return resto === 10 ? 0 : resto;\r\n    };\r\n\r\n    const primeiroDigito = calcularDigito(base, 10);\r\n    const segundoDigito = calcularDigito(\r\n        [...base, primeiroDigito],\r\n        11\r\n    );\r\n\r\n    return [...base, primeiroDigito, segundoDigito].join(\"\");\r\n}\r\n\r\nconst uniqueId = Date.now();\r\n\r\npm.environment.set(\"saleCustomerCpf\", gerarCpfValido());\r\npm.environment.set(\r\n    \"saleCustomerEmail\",\r\n    `cliente.vendas.${uniqueId}@example.com`\r\n);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"Setup Cliente - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Setup Cliente - Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"Setup Cliente - Deve retornar os dados do cliente criado\", () => {\r\n    pm.expect(response).to.have.property(\"name\", \"Cliente Teste Vendas\");\r\n\r\n    pm.expect(response.cpf)\r\n        .to.eql(pm.environment.get(\"saleCustomerCpf\"));\r\n\r\n    pm.expect(response.email)\r\n        .to.eql(pm.environment.get(\"saleCustomerEmail\"));\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"saleCustomerId\", response.id);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Cliente Teste Vendas\",\r\n  \"cpf\": \"{{saleCustomerCpf}}\",\r\n  \"email\": \"{{saleCustomerEmail}}\",\r\n  \"phone\": \"+55 11 98888-7777\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Setup - Criar veículo disponível para venda",
           "event": [
             {
@@ -2054,7 +2112,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"cbeba906-9f38-47f7-98bd-cb3da4f54d83\",\r\n  \"salePrice\": 120000\r\n}",
+              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"{{saleVehicleId}}\",\r\n  \"salePrice\": 120000\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2083,7 +2141,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-006 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-006 - Resposta deve ser uma lista\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-SALE-006 - Lista deve conter pelo menos uma venda\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-SALE-006 - Deve conter a venda cadastrada\", () => {\r\n    const sale = response.find(\r\n        s => s.id === pm.environment.get(\"saleId\")\r\n    );\r\n\r\n    pm.expect(sale).to.exist;\r\n    pm.expect(sale.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n    pm.expect(sale.salePrice).to.eql(120000);\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-006 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-006 - Resposta deve ser uma lista\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-SALE-006 - Lista deve conter pelo menos uma venda\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-SALE-006 - Deve conter a venda cadastrada\", () => {\r\n    const sale = response.find(\r\n        s => s.id === pm.environment.get(\"saleId\")\r\n    );\r\n\r\n    pm.expect(sale).to.exist;\r\n\r\n    pm.expect(sale.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n\r\n    pm.expect(sale.vehicleId)\r\n        .to.eql(pm.environment.get(\"saleVehicleId\"));\r\n\r\n    pm.expect(sale.salePrice).to.eql(120000);\r\n});"
                 ]
               }
             }
@@ -2132,7 +2190,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-007 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-007 - Resposta deve ser uma lista\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-SALE-007 - VENDEDOR deve receber lista de vendas\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-SALE-007 - VENDEDOR deve visualizar a venda cadastrada\", () => {\r\n    const sale = response.find(\r\n        s => s.id === pm.environment.get(\"saleId\")\r\n    );\r\n\r\n    pm.expect(sale).to.exist;\r\n    pm.expect(sale.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n    pm.expect(sale.salePrice).to.eql(120000);\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-007 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-007 - Resposta deve ser uma lista\", () => {\r\n    pm.expect(response).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"CT-SALE-007 - VENDEDOR deve receber lista de vendas\", () => {\r\n    pm.expect(response.length).to.be.above(0);\r\n});\r\n\r\npm.test(\"CT-SALE-007 - VENDEDOR deve visualizar a venda cadastrada\", () => {\r\n    const sale = response.find(\r\n        s => s.id === pm.environment.get(\"saleId\")\r\n    );\r\n\r\n    pm.expect(sale).to.exist;\r\n\r\n    pm.expect(sale.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n\r\n    pm.expect(sale.vehicleId)\r\n        .to.eql(pm.environment.get(\"saleVehicleId\"));\r\n\r\n    pm.expect(sale.salePrice).to.eql(120000);\r\n});"
                 ]
               }
             }
@@ -2181,7 +2239,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-008 - Deve retornar a venda solicitada\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-008 - Deve retornar o cliente correto\", () => {\r\n    pm.expect(response.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-008 - Deve retornar os dados da venda\", () => {\r\n    pm.expect(response).to.have.property(\"vehicleId\");\r\n    pm.expect(response.salePrice).to.eql(120000);\r\n    pm.expect(response).to.have.property(\"saleDate\");\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-008 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-008 - Deve retornar a venda solicitada\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-008 - Deve retornar o cliente correto\", () => {\r\n    pm.expect(response.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-008 - Deve retornar os dados da venda\", () => {\r\n    pm.expect(response.vehicleId)\r\n        .to.eql(pm.environment.get(\"saleVehicleId\"));\r\n\r\n    pm.expect(response.salePrice).to.eql(120000);\r\n\r\n    pm.expect(response).to.have.property(\"saleDate\");\r\n});"
                 ]
               }
             }
@@ -2281,7 +2339,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-010 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-010 - Deve retornar a venda atualizada\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-010 - Deve atualizar o valor da venda para 125000\", () => {\r\n    pm.expect(response.salePrice).to.eql(125000)\r\n});\r\n\r\npm.test(\"CT-SALE-010 - Deve manter os demais dados da venda\", () => {\r\n    pm.expect(response.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n\r\n    pm.expect(response).to.have.property(\"vehicleId\");\r\n    pm.expect(response).to.have.property(\"saleDate\");\r\n})\r\n\r\n"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-010 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-010 - Deve retornar a venda atualizada\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-010 - Deve atualizar o valor da venda para 125000\", () => {\r\n    pm.expect(response.salePrice).to.eql(125000)\r\n});\r\n\r\npm.test(\"CT-SALE-010 - Deve manter os demais dados da venda\", () => {\r\n    pm.expect(response.customerId)\r\n        .to.eql(pm.environment.get(\"saleCustomerId\"));\r\n\r\n    pm.expect(response.vehicleId)\r\n        .to.eql(pm.environment.get(\"saleVehicleId\"));\r\n\r\n    pm.expect(response).to.have.property(\"saleDate\");\r\n});\r\n"
                 ]
               }
             }
@@ -2331,7 +2389,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-011 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Deve atualizar o valor da venda para 130000\", () => {\r\n    pm.expect(response.salePrice).to.eql(130000);\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Deve manter a mesma venda\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleId\"));\r\n});\r\n\r\npm.environment.set(\"saleVehicleIdCheck\", response.vehicleId);"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-011 - Status code deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Deve atualizar o valor da venda para 130000\", () => {\r\n    pm.expect(response.salePrice).to.eql(130000);\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Deve manter a mesma venda\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleId\"));\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Deve manter o mesmo veículo da venda\", () => {\r\n    pm.expect(response.vehicleId)\r\n        .to.eql(pm.environment.get(\"saleVehicleId\"));\r\n});\r\n\r\nif (pm.response.code === 200 && response.vehicleId) {\r\n    pm.environment.set(\"saleVehicleIdCheck\", response.vehicleId);\r\n}"
                 ]
               }
             }
@@ -2381,7 +2439,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-011 - Status code da consulta do veículo deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Veículo deve continuar com status VENDIDO\", () => {\r\n    pm.expect(response.status).to.eql(\"VENDIDO\");\r\n});"
+                  "const response = pm.response.json();\r\n\r\npm.test(\"CT-SALE-011 - Status code da consulta do veículo deve ser 200\", () => {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Deve retornar o veículo correto\", () => {\r\n    pm.expect(response.id)\r\n        .to.eql(pm.environment.get(\"saleVehicleIdCheck\"));\r\n});\r\n\r\npm.test(\"CT-SALE-011 - Veículo deve continuar com status VENDIDO\", () => {\r\n    pm.expect(response.status).to.eql(\"VENDIDO\");\r\n});"
                 ]
               }
             }
@@ -2498,6 +2556,64 @@
           "response": []
         },
         {
+          "name": "Setup - Criar veículo disponível para teste de permissão",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letras = Array.from(\r\n    { length: 3 },\r\n    () => String.fromCharCode(65 + Math.floor(Math.random() * 26))\r\n).join(\"\");\r\n\r\nconst numeros = Math.floor(1000 + Math.random() * 9000);\r\n\r\nconst placa = `${letras}${numeros}`;\r\n\r\npm.environment.set(\"sellerSaleVehiclePlate\", placa);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();\r\n\r\npm.test(\"Setup Permissão - Status code deve ser 201\", () => {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Content-Type deve ser JSON\", () => {\r\n    pm.expect(pm.response.headers.get(\"Content-Type\"))\r\n        .to.include(\"application/json\");\r\n});\r\n\r\npm.test(\"Setup Permissão - Deve criar veículo disponível\", () => {\r\n    pm.expect(response.status).to.eql(\"DISPONIVEL\");\r\n\r\n    pm.expect(response.plate)\r\n        .to.eql(pm.environment.get(\"sellerSaleVehiclePlate\"));\r\n});\r\n\r\nif (pm.response.code === 201 && response.id) {\r\n    pm.environment.set(\"sellerSaleVehicleId\", response.id);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"brand\": \"Honda\",\r\n  \"model\": \"City\",\r\n  \"year\": 2025,\r\n  \"color\": \"Cinza\",\r\n  \"mileage\": 100,\r\n  \"price\": 110000,\r\n  \"plate\": \"{{sellerSaleVehiclePlate}}\",\r\n  \"status\": \"DISPONIVEL\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "CT-SALE-015 - VENDEDOR tentando cadastrar venda",
           "event": [
             {
@@ -2525,7 +2641,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"{{saleVehicleId}}\",\r\n  \"salePrice\": 120000\r\n}",
+              "raw": "{\r\n  \"customerId\": \"{{saleCustomerId}}\",\r\n  \"vehicleId\": \"{{sellerSaleVehicleId}}\",\r\n  \"salePrice\": 120000\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2582,6 +2698,129 @@
               "path": [
                 "sales",
                 "{{saleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup - Excluir veículo principal da venda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cleanup - Veículo principal deve ser excluído\", () => {\r\n    pm.response.to.have.status(204);\r\n});\r\n\r\npm.test(\"Cleanup - Resposta não deve conter body\", () => {\r\n    pm.expect(pm.response.text()).to.eql(\"\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles/{{saleVehicleId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles",
+                "{{saleVehicleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup - Excluir veículo do teste de permissão",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cleanup - Veículo do teste de permissão deve ser excluído\", () => {\r\n    pm.response.to.have.status(204);\r\n});\r\n\r\npm.test(\"Cleanup - Resposta não deve conter body\", () => {\r\n    pm.expect(pm.response.text()).to.eql(\"\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/vehicles/{{sellerSaleVehicleId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "vehicles",
+                "{{sellerSaleVehicleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup - Excluir cliente da venda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cleanup - Cliente da venda deve ser excluído\", () => {\r\n    pm.response.to.have.status(204);\r\n});\r\n\r\npm.test(\"Cleanup - Resposta não deve conter body\", () => {\r\n    pm.expect(pm.response.text()).to.eql(\"\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/customers/{{saleCustomerId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "customers",
+                "{{saleCustomerId}}"
               ]
             }
           },
